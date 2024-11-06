@@ -11,14 +11,14 @@ export function LoginForm (): JSX.Element {
     setError(null)
 
     const formData = new FormData(event.currentTarget)
-    const email = formData.get('email') as string
+    const mail = formData.get('email') as string
     const password = formData.get('password') as string
 
-    loginUser({ email, password })
+    loginUser({ mail, password })
       .then((session) => {
         setError(null)
         setLoading(false)
-        document.cookie = `userId=${session.userId}`
+        document.cookie = `userId=${session.user.userId}`
         document.cookie = `token=${session.token}`
         window.location.href = '/'
       })

@@ -1,12 +1,63 @@
 ---
 import Layout from "../layouts/Layout.astro";
-import { Appointments } from "../components/Appointments";
+import { getAppointments } from "../services/appointment";
+import type { Appointment } from "../types/appointments";
+
+const options: Intl.DateTimeFormatOptions = {
+    weekday: 'long', // Día de la semana completo
+    day: '2-digit',  // Día del mes con dos dígitos
+    month: 'long',   // Mes con nombre completo
+    year: 'numeric', // Año con 4 dígitos
+    hour: '2-digit', // Hora con dos dígitos
+    minute: '2-digit', // Minutos con dos dígitos
+    second: '2-digit', // Segundos con dos dígitos
+    hour12: true     // Usar formato de 24 horas
+};
+
+let isLoading = false;
+let message = null;
+
+let appointments: Appointment[] = [];
+
+const userIdStr = Astro.cookies.get('userId')?.value
+const userId = userIdStr ? parseInt(userIdStr) : null
+
+if(userId) {
+  try {
+  appointments = await getAppointments({ userId });
+  if(appointments.length === 0) {
+    message = 'No hay citas disponibles';
+  }
+  message = null;
+  console.log(appointments);
+} catch (error) {
+  message = 'Error al cargar las citas';
+}
+} else {
+  message = 'No se ha iniciado sesión';
+}
 
 ---
 
 <Layout title="Citas">
-  <div class="flex flex-row justify-center">
-    <h1 class="text-4xl text-white mt-10 mb-4 text-center">Citas</hjson1>
-    <Appointments client:only/>
+  <div class="flex flex-col justify-center">
+    <h1 class="text-4xl text-white mt-10 mb-4 text-center">Citas</h1>
+      <div>
+        {isLoading && <span class='mt-9 w-3 h-3 rounded-full block mx-4 my-auto relative -left-24 box-border animate-shadow-rolling' />}
+        {message !== null && <p>{message}</p>}
+        <ul class='flex flex-col w-full max-w-screen-lg gap-y-8 mt-6'>
+          {appointments.length > 0 && appointments.map((appointment) => (
+            <li class='flex w-full h-28'>
+              <header class='h-full aspect-video'>
+                <img src={appointment.houseImage} alt={'Casa en: ' + appointment.houseLocation} class='h-full object-contain' />
+              </header>
+              <div class='flex flex-col p-4'>
+                <h2 class='text-white text-2xl mb-2'>{appointment.houseLocation}</h2>
+                <p class='text-logan-200 text-xl'>{new Date(appointment.date ?? '').toLocaleString('es-ES', options)}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+    </div>
   </div>
 </Layout>

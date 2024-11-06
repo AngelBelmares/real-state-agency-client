@@ -1,33 +1,24 @@
 export interface User {
-  email: string
-  password: string
+  userId: number
   username: string
+  mail: string
+  name: string
+  lastname: string
 }
 
 export interface Session {
-  userId: string
+  user: User
   token: string
 }
 
-export interface ConfirmUser {
-  userId: string
-  authCode: string
-}
-
 export interface SignIn {
-  userName: string
+  username?: string
+  mail?: string
   password: string
-  email: string
-  city?: string
-  id_country?: number
-  firstName?: string
-  lastName?: string
-  postalCode?: number
-  telephone?: number
-  address?: string
 }
 
 export interface Login {
-  email: string
+  username?: string
+  mail?: string
   password: string
 }

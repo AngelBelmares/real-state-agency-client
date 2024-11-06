@@ -1,15 +1,15 @@
 import { API_URL } from '../constants/api'
-import type { RegisterAppointment, Appointment } from '../types/cars'
+import type { Appointment, AppointmentFilter } from '../types/appointments'
 import { z } from 'zod'
 
-export async function registerAppointment ({ userId, idCar, date, token }: RegisterAppointment): Promise<string> {
-  const response = await fetch(`${API_URL}/api/Appointments/${userId}`, {
+export async function registerAppointment (appointment: Appointment, authToken?: string): Promise<string> {
+  console.log(`${API_URL}/Appointments`)
+  const response = await fetch(`${API_URL}/Appointments`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ idCar, date })
+    body: JSON.stringify(appointment)
   })
 
   if (!response.ok) {
@@ -20,10 +20,9 @@ export async function registerAppointment ({ userId, idCar, date, token }: Regis
 }
 
 export const appointmentSchema = z.object({
-  userId: z.string().min(1, { message: 'Hubo un problema, vuelva a iniciar sesión' }),
-  idCar: z.string().min(1, { message: 'Hubo un problema, vuelva a seleccionar el auto' }),
-  date: z.date().refine((date) => date > new Date(), { message: 'La fecha de la cita no puede ser en el pasado' }),
-  token: z.string().min(1, { message: 'Hubo un problema, vuelva a iniciar sesión' })
+  userId: z.number().min(1, { message: 'Hubo un problema, vuelva a iniciar sesión' }),
+  houseId: z.number().min(1, { message: 'Debe seleccionar una casa' }),
+  date: z.date().refine((date) => date > new Date(), { message: 'La fecha de la cita no puede ser en el pasado' })
 })
 
 export const getCurrentTime = (): string => {
@@ -32,17 +31,17 @@ export const getCurrentTime = (): string => {
   return new Date(date.getTime() - (offset * 60000)).toISOString().slice(0, 16)
 }
 
-export async function getAppointments ({ userId, token }: { userId: string, token: string }): Promise<Appointment[]> {
-  const res = await fetch(`${API_URL}/api/Appointments/${userId}`, {
+export async function getAppointments (filter: AppointmentFilter): Promise<Appointment[]> {
+  const res = await fetch(`${API_URL}/Appointments` +
+    `?AppointmentId=${filter?.appointmentId ?? ''}` +
+    `&UserId=${filter?.userId ?? ''}` +
+    `&AgentId=${filter?.agentId ?? ''}` +
+    `&HouseId=${filter?.houseId ?? ''}`, {
     method: 'GET',
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`
+      'Content-Type': 'application/json'
     }
   })
-  if (!res.ok) {
-    throw new Error('Error fetching appointments')
-  }
   const data = await res.json()
   return data as Appointment[]
 }

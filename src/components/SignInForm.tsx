@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { registerUser, validateData } from '../services/signIn'
+import { API_URL } from '../constants/api'
+console.log(API_URL)
 
 export function SignInForm (): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState<boolean>(false)
+  // const API_URL = import.meta.env.VITE_API_URL as string
 
   const handleSignIn = (event: React.FormEvent<HTMLFormElement>): void => {
     event.preventDefault()
@@ -12,21 +15,25 @@ export function SignInForm (): JSX.Element {
 
     const formData = new FormData(event.currentTarget)
     const username = formData.get('username') as string
-    const email = formData.get('email') as string
+    const mail = formData.get('email') as string
     const password = formData.get('password') as string
     const password2 = formData.get('password2') as string
 
-    const validatedDataForm = validateData({ userName: username, email, password, password2 })
+    const validatedDataForm = validateData({ username, mail, password, password2 })
     if (validatedDataForm instanceof Error) {
       setError(validatedDataForm.message)
       setLoading(false)
       return
     }
 
-    registerUser({ userName: username, email, password, firstName: '', lastName: '', city: '', address: '', postalCode: 0, telephone: 0, id_country: 1 })
-      .then((session) => {
+    registerUser({ username, mail, password })
+      .then((data) => {
         setLoading(false)
-        window.location.href = `/confirmUser?userId=${session.userId}`
+        if (data.token !== '' && data.user.userId !== undefined) {
+          window.location.href = '/login'
+        } else {
+          setError('Error al registrar usuario')
+        }
       })
       .catch((error) => {
         setError(error.message)
